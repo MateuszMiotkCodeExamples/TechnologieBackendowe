@@ -1,0 +1,9 @@
+POST http://localhost:3000/newsletter-signup/process
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Mateusz",
+  "email": "mmiotk@pjwstk.edu.pl"
+}
+
