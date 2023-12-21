@@ -4,6 +4,7 @@ const port = process.env.PORT || 3000
 const {engine, create} = require("express-handlebars");
 const handlers = require("./handlers");
 const {render} = require("express/lib/application");
+require('./db')
 app.set('view cache', true)
 const hbs = create({
     // Specify helpers which are only registered on this instance.
@@ -35,9 +36,13 @@ app.post('/vacation-photo/:year/:month', (req, res) => {
     const form = new multiparty.Form()
     form.parse(req, (err, fields, files) => {
         if(err) return res.status(500).send({ error: err.message })
-        handlers.vacationPhotoContestProcess(req, res, fields, files)
+        handlers.api.vacationPhotoContest(req, res, fields, files)
     })
 })
+
+app.get('/vacations', handlers.listVacations)
+app.get('/notify-me-when-in-season', handlers.notifyWhenInSeasonForm)
+app.post('/notify-me-when-in-season', handlers.notifyWhenInSeasonProcess)
 
 app.use((err, req, res, next) => {
     console.error('** SERVER ERROR: ' + err.message)
