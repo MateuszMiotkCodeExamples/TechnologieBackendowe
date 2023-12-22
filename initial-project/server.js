@@ -4,7 +4,6 @@ const port = process.env.PORT || 3000
 const {engine, create} = require("express-handlebars");
 const handlers = require("./handlers");
 const {render} = require("express/lib/application");
-require('./db')
 app.set('view cache', true)
 const hbs = create({
     // Specify helpers which are only registered on this instance.

@@ -2,10 +2,7 @@
 const pathUtils = require('path')
 const fs = require('fs')
 // create directory to store vacation photos (if it doesn't already exist)
-const dataDir = pathUtils.resolve(__dirname, '..', 'data')
-const vacationPhotosDir = pathUtils.join(dataDir, 'vacation-photos')
-if(!fs.existsSync(dataDir)) fs.mkdirSync(dataDir)
-if(!fs.existsSync(vacationPhotosDir)) fs.mkdirSync(vacationPhotosDir)
+
 function saveContestEntry(contestName, email, year, month, photoPath) {
 // TODO...this will come later
 }
