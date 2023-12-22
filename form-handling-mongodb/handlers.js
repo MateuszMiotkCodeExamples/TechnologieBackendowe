@@ -68,6 +68,10 @@ exports.api.vacationPhotoContest = async (req, res, fields, files) => {
     res.send({ result: 'success' })
 }
 
+exports.createVacations = async (req, res) => {
+    await db.createVacations()
+}
+
 exports.listVacations = async (req, res) => {
     const vacations = await db.getVacations({ available: true })
     const context = {

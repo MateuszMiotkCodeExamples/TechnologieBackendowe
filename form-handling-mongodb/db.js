@@ -80,6 +80,7 @@ async function createVacations() {
 
 const VacationInSeasonListener = require('./models/vacationInSeasonListener')
 module.exports = {
+    createVacations: async () => {await createVacations()},
     getVacations: async (options = {}) => Vacation.find(options),
     addVacationInSeasonListener: async (email, sku) => {
         await VacationInSeasonListener.updateOne(

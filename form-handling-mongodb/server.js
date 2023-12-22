@@ -39,7 +39,7 @@ app.post('/vacation-photo/:year/:month', (req, res) => {
         handlers.api.vacationPhotoContest(req, res, fields, files)
     })
 })
-
+app.get('/create-vacations', handlers.createVacations)
 app.get('/vacations', handlers.listVacations)
 app.get('/notify-me-when-in-season', handlers.notifyWhenInSeasonForm)
 app.post('/notify-me-when-in-season', handlers.notifyWhenInSeasonProcess)
