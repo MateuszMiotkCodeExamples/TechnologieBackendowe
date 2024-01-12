@@ -1,0 +1,10 @@
+<h1>Specjalne Oferty</h1>
+{{#if specials.length}}
+    <ul>
+        {{#each specials}}
+            <li>{{this.name}}: {{this.description}}</li>
+        {{/each}}
+    </ul>
+{{else}}
+    <p>Brak specjalnych ofert w tym momencie.</p>
+{{/if}}
