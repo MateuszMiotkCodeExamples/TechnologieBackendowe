@@ -15,10 +15,11 @@ app.use((req, res, next) => {
     next();
 });
 
-app.post('/add-to-cart/:tourId', (req, res) => {
-    const { tourId } = req.params;
-    req.session.cart.items.push({ tourId });
-    res.send(`Dodano wycieczkę o ID ${tourId} do koszyka.`);
+app.post('/add-to-cart/:tourID', (req, res, next) => {
+    req.session.cart.items.push({
+        product: req.query.product,
+        quantity: req.query.quantity
+    });
 });
 
 app.get('/cart', (req, res) => {
