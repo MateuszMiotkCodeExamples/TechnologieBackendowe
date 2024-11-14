@@ -1,0 +1,199 @@
+# swagger.yaml
+openapi: 3.0.0
+info:
+  title: Student Post API
+  version: 1.0.0
+  description: API do zarządzania studentami
+servers:
+  - url: http://localhost:3000
+paths:
+  /students:
+    get:
+      summary: Pobierz listę studentów
+      responses:
+        '200':
+          description: Lista studentów
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+    post:
+      summary: Dodaj nowego studenta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentInput'
+      responses:
+        '201':
+          description: Student dodany pomyślnie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  student:
+                    $ref: '#/components/schemas/Student'
+  /students/{id}:
+    get:
+      summary: Pobierz studenta po ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID studenta
+      responses:
+        '200':
+          description: Dane studenta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '404':
+          description: Student nie znaleziony
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+    put:
+      summary: Aktualizuj dane studenta po ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID studenta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentInput'
+      responses:
+        '200':
+          description: Student zaktualizowany pomyślnie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  student:
+                    $ref: '#/components/schemas/Student'
+        '404':
+          description: Student nie znaleziony
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+    patch:
+      summary: Częściowo aktualizuj dane studenta po ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID studenta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentUpdate'
+      responses:
+        '200':
+          description: Student zaktualizowany pomyślnie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  student:
+                    $ref: '#/components/schemas/Student'
+        '404':
+          description: Student nie znaleziony
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+    delete:
+      summary: Usuń studenta po ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID studenta
+      responses:
+        '200':
+          description: Student usunięty pomyślnie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Student nie znaleziony
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+components:
+  schemas:
+    Student:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        age:
+          type: integer
+      required:
+        - id
+        - name
+        - age
+    StudentInput:
+      type: object
+      properties:
+        name:
+          type: string
+        age:
+          type: integer
+      required:
+        - name
+        - age
+    StudentUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        age:
+          type: integer
