@@ -10,11 +10,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.7.7",
     "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
     "express": "^4.21.1",
+    "express-mung": "^0.5.1",
+    "express-validator": "^7.2.0",
     "nodemon": "^3.1.7",
     "swagger-autogen": "^2.23.7",
     "swagger-ui-express": "^5.0.1",
+    "xml2js": "^0.6.2",
     "yamljs": "^0.3.0"
   }
 }

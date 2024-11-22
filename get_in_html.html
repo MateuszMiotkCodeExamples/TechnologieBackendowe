@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Document</title>
+  <script>
+    function run() {
+      // Tworzenie obiektu XMLHttpRequest
+      let xhr = new XMLHttpRequest();
+      // Nawiązywanie połączenia
+      var url = 'http://localhost:6069/users';
+      xhr.open("GET", url, true);
+      // Funkcja wykonywana po pomyślnym żądaniu
+      xhr.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          console.log(this.responseText);
+        }
+      }
+      // Wysyłanie żądania
+      xhr.send();
+    }
+    //inny sposób za pomocą fetch
+    function run2() {
+      const url = 'http://localhost:6069/users';
+
+      fetch(url)
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error('Sieciowy odpowiedź nie powiodła się: ' + response.statusText);
+                }
+                return response.json(); // Zakładamy, że odpowiedź jest w formacie JSON
+              })
+              .then(data => {
+                console.log(data);
+              })
+              .catch(error => {
+                console.error('Wystąpił problem z operacją fetch:', error);
+              });
+    }
+
+    // Uruchomienie funkcji po załadowaniu strony
+    window.onload = run2;
+    run();
+  </script>
+</head>
+<body>
+</body>
+</html>
