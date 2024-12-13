@@ -1,18 +1,29 @@
 //controllers/employeeControler.js
 const mongoose = require('mongoose');
 const Employee = require('../models/employee');
+const Department = require("../models/department");
+const {Specialist} = require("../models/employee");
 
 // Tworzenie nowego pracownika za pomocą metody `save()`
 exports.createEmployee = async (req, res) => {
-    const { name, dob, address, phone } = req.body;
+    const { name, email, dob, address, phone, department } = req.body;
 
     try {
-        const employee = new Employee({ name, dob, address, phone });
+        const employee = new Employee({ name, email, dob, address, phone, department });
         await employee.save();
-        res.status(201).send("Pracownik zapisany pomyślnie za pomocą metody save().");
+        res.status(201).json({
+            success: true,
+            message: "Pracownik zapisany pomyślnie.",
+            data: employee
+        });
     } catch (err) {
+        // Obsługa błędów walidacji
+        if (err.name === 'ValidationError') {
+            const messages = Object.values(err.errors).map(val => val.message);
+            return res.status(400).json({ success: false, errors: messages });
+        }
         console.error(err);
-        res.status(500).json({ error: "Wystąpił błąd podczas zapisywania pracownika." });
+        res.status(500).json({ success: false, error: "Wystąpił błąd podczas zapisywania pracownika." });
     }
 };
 
@@ -80,14 +91,14 @@ exports.getEmployeeById = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const employee = await Employee.findById(id);
+        const employee = await Employee.findById(id).populate('department', 'name location');
         if (!employee) {
-            return res.status(404).json({ error: "Pracownik nie znaleziony." });
+            return res.status(404).json({ success: false, data: "Pracownik o podanym ID nie istnieje." });
         }
         res.status(200).json(employee);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Wystąpił błąd podczas pobierania pracownika." });
+        res.status(500).json({ success: false, error: "Wystąpił błąd podczas pobierania pracownika." });
     }
 };
 
@@ -185,5 +196,182 @@ exports.deleteOneEmployee = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, error: "Wystąpił błąd podczas usuwania pracownika." });
+    }
+};
+
+// Tworzenie pracownika i działu w ramach transakcji
+exports.createEmployeeWithDepartment = async (req, res) => {
+    const { name, email, dob, address, phone, departmentName, departmentLocation } = req.body;
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        // Tworzenie działu
+        const department = new Department({ name: departmentName, location: departmentLocation });
+        await department.save({ session });
+
+        // Tworzenie pracownika z referencją do działu
+        const employee = new Employee({
+            name,
+            email,
+            dob,
+            address,
+            phone,
+            department: department._id
+        });
+        await employee.save({ session });
+
+        // Zatwierdzenie transakcji
+        await session.commitTransaction();
+        session.endSession();
+
+        res.status(201).json({
+            success: true,
+            message: "Pracownik i dział zapisani pomyślnie.",
+            data: { employee, department }
+        });
+    } catch (err) {
+        // Wycofanie transakcji w przypadku błędu
+        await session.abortTransaction();
+        session.endSession();
+
+        if (err.name === 'ValidationError') {
+            const messages = Object.values(err.errors).map(val => val.message);
+            return res.status(400).json({ success: false, errors: messages });
+        }
+        if (err.code === 11000) { // Błąd unikalności
+            return res.status(400).json({ success: false, error: "Dział lub email pracownika już istnieje." });
+        }
+        console.error(err);
+        res.status(500).json({ success: false, error: "Wystąpił błąd podczas tworzenia pracownika i działu." });
+    }
+};
+
+// Agregacja: Liczba pracowników w każdym dziale
+exports.getEmployeeCountByDepartment = async (req, res) => {
+    try {
+        const result = await Employee.aggregate([
+            {
+                $group: {
+                    _id: "$department",
+                    employeeCount: { $sum: 1 }
+                }
+            },
+            {
+                $lookup: {
+                    from: "departments",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "departmentInfo"
+                }
+            },
+            {
+                $unwind: "$departmentInfo"
+            },
+            {
+                $project: {
+                    _id: 0,
+                    departmentId: "$_id",
+                    departmentName: "$departmentInfo.name",
+                    employeeCount: 1
+                }
+            }
+        ]);
+
+        res.status(200).json({ success: true, data: result });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: "Wystąpił błąd podczas agregacji danych." });
+    }
+};
+
+// Agregacja: Średni wiek pracowników w każdym dziale
+exports.getAverageAgeByDepartment = async (req, res) => {
+    try {
+        const result = await Employee.aggregate([
+            {
+                $project: {
+                    department: 1,
+                    age: {
+                        $divide: [
+                            { $subtract: [new Date(), "$dob"] },
+                            1000 * 60 * 60 * 24 * 365
+                        ]
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$department",
+                    averageAge: { $avg: "$age" }
+                }
+            },
+            {
+                $lookup: {
+                    from: "departments",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "departmentInfo"
+                }
+            },
+            {
+                $unwind: "$departmentInfo"
+            },
+            {
+                $project: {
+                    _id: 0,
+                    departmentId: "$_id",
+                    departmentName: "$departmentInfo.name",
+                    averageAge: { $round: ["$averageAge", 1] }
+                }
+            }
+        ]);
+
+        res.status(200).json({ success: true, data: result });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: "Wystąpił błąd podczas agregacji danych." });
+    }
+};
+
+// Tworzenie specjalisty
+exports.createSpecialist = async (req, res) => {
+    const { name, email, dob, address, phone, department, specialty } = req.body;
+
+    try {
+        const specialist = new Specialist({ name, email, dob, address, phone, department, specialty });
+        await specialist.save();
+        res.status(201).json({
+            success: true,
+            message: "Specjalista zapisany pomyślnie.",
+            data: specialist
+        });
+    } catch (err) {
+        if (err.name === 'ValidationError') {
+            const messages = Object.values(err.errors).map(val => val.message);
+            return res.status(400).json({ success: false, errors: messages });
+        }
+        if (err.code === 11000) { // Błąd unikalności
+            return res.status(400).json({ success: false, error: "Email pracownika już istnieje." });
+        }
+        console.error(err);
+        res.status(500).json({ success: false, error: "Wystąpił błąd podczas zapisywania specjalisty." });
+    }
+};
+
+// Odczyt specjalisty po ID z populate
+exports.getSpecialistById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const specialist = await Specialist.findById(id).populate('department', 'name location');
+        if (!specialist) {
+            return res.status(404).json({ success: false, data: "Specjalista o podanym ID nie istnieje." });
+        }
+        res.status(200).json(specialist);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: "Wystąpił błąd podczas pobierania specjalisty." });
     }
 };
