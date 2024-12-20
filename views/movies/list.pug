@@ -1,0 +1,25 @@
+doctype html
+html(lang="pl")
+    head
+        meta(charset="UTF-8")
+        title Lista Filmów
+        link(rel="stylesheet" href="/style.css")
+    body
+        h1 Lista Filmów
+        table
+            thead
+                tr
+                    th Id
+                    th Tytuł
+                    th Rok
+                    th
+                    th
+            tbody
+                    tr
+                        td= movie.id
+                        td= movie.title
+                        td= movie.year
+                        td
+                            a(href=`/api/movies/delete/${movie.id}`) Usuń
+                        td
+                            a(href=`/movies/form?id=${movie.id}`) Edytuj

@@ -1,0 +1,9 @@
+mixin listItem(movie)
+    tr
+        td #{movie.id}
+        td #{movie.title}
+        td #{movie.year}
+        td
+            a(href="/movies/delete/" + movie.id) Usuń
+        td
+            a(href="/movies/form/" + movie.id) Edytuj
