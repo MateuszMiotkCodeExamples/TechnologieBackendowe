@@ -1,0 +1,736 @@
+{
+	"info": {
+		"_postman_id": "de98b114-2eac-40bc-8ee9-7d37f12c57ee",
+		"name": "test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "9275882"
+	},
+	"item": [
+		{
+			"name": "Registration",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test 1: Sprawdzenie statusu i struktury odpowiedzi",
+							"pm.test(\"Status code dla poprawnej rejestracji to 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Odpowiedź zawiera prawidłowe pola\", function () {",
+							"    const response = pm.response.json();",
+							"    ",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('token');",
+							"    pm.expect(response).to.have.property('user');",
+							"    pm.expect(response.user).to.have.property('email');",
+							"    pm.expect(response.user).to.have.property('role');",
+							"});",
+							"",
+							"pm.test(\"Token jest prawidłowym stringiem\", function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.token).to.be.a('string').and.to.have.lengthOf.above(10);",
+							"});",
+							"",
+							"// Zapisanie tokenu do zmiennych środowiskowych",
+							"if (pm.response.code === 201) {",
+							"    const response = pm.response.json();",
+							"    pm.environment.set(\"userToken\", response.token);",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"Test123!\",\n    \"confirmPassword\": \"Test123!\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/auth/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code dla poprawnego logowania to 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Odpowiedź logowania zawiera token\", function () {",
+							"    const response = pm.response.json();",
+							"    ",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('token');",
+							"    pm.expect(response.token).to.be.a('string');",
+							"});",
+							"",
+							"pm.test(\"Dane użytkownika są poprawne\", function () {",
+							"    const response = pm.response.json();",
+							"    ",
+							"    pm.expect(response.user.email).to.eql(pm.environment.get(\"testUserEmail\"));",
+							"});",
+							"",
+							"// Zapisanie tokenu",
+							"if (pm.response.code === 200) {",
+							"    const response = pm.response.json();",
+							"    pm.environment.set(\"userToken\", response.token);",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"user@example2.com\",\n    \"password\": \"Password123!\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Profil użytkownika",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code jest 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Struktura danych profilu jest poprawna\", function () {",
+							"    const response = pm.response.json();",
+							"    ",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('user');",
+							"    pm.expect(response.user).to.include.all.keys('email', 'role', 'isActive');",
+							"    pm.expect(response.user).to.not.have.property('password');",
+							"});",
+							"",
+							"pm.test(\"Email użytkownika jest zgodny z zarejestrowanym\", function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.user.email).to.eql(pm.environment.get(\"testUserEmail\"));",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODA0YTU3ZTgyMjIyYzgzMGZiMzIxNiIsImlhdCI6MTczNjQ2MDkzOCwiZXhwIjoxNzM2NTQ3MzM4fQ.w6GzBK419d_1ifoBj-JGEu40Vd8EpS2_JSQTtY4vVYU",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/users/profile",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"users",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/api/users/list?page=1&limit=10",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODA0MzY2ZTgyMjIyYzgzMGZiMzFhOSIsImlhdCI6MTczNjQ1OTQzOSwiZXhwIjoxNzM2NTQ1ODM5fQ.gRxEQAssJVfJw1wXzbyt11wWICI3xUnVoPJdM09eeJo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/users/list?page=1&limit=10",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"users",
+						"list"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "limit",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Aktualizacja profilu",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code jest 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Email został zaktualizowany\", function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.user.email).to.eql(\"updated@example.com\");",
+							"    ",
+							"    // Aktualizacja zmiennej środowiskowej",
+							"    pm.environment.set(\"testUserEmail\", response.user.email);",
+							"});",
+							"",
+							"pm.test(\"Odpowiedź zawiera zaktualizowane dane\", function () {",
+							"    const response = pm.response.json();",
+							"    ",
+							"    pm.expect(response).to.have.property('success', true);",
+							"    pm.expect(response.user).to.include.all.keys('email', 'role', 'isActive');",
+							"    pm.expect(response.user).to.not.have.property('password');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODA0YTU3ZTgyMjIyYzgzMGZiMzIxNiIsImlhdCI6MTczNjQ2MDkzOCwiZXhwIjoxNzM2NTQ3MzM4fQ.w6GzBK419d_1ifoBj-JGEu40Vd8EpS2_JSQTtY4vVYU",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"updated@example.com\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/users/profile",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"users",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Zmiana hasła",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code jest 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Hasło zostało zmienione pomyślnie\", function () {",
+							"    const response = pm.response.json();",
+							"    ",
+							"    pm.expect(response).to.have.property('success', true);",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response.message).to.include('zmienione');",
+							"});",
+							"",
+							"// Test logowania z nowym hasłem",
+							"pm.sendRequest({",
+							"    url: pm.environment.get(\"baseUrl\") + \"/api/auth/login\",",
+							"    method: 'POST',",
+							"    header: { 'Content-Type': 'application/json' },",
+							"    body: {",
+							"        mode: 'raw',",
+							"        raw: JSON.stringify({",
+							"            email: pm.environment.get(\"testUserEmail\"),",
+							"            password: \"NewTest123!\"",
+							"        })",
+							"    }",
+							"}, function (err, response) {",
+							"    pm.test(\"Logowanie z nowym hasłem działa\", function () {",
+							"        pm.expect(response.code).to.equal(200);",
+							"        const responseData = response.json();",
+							"        pm.expect(responseData).to.have.property('token');",
+							"    });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODA0YTU3ZTgyMjIyYzgzMGZiMzIxNiIsImlhdCI6MTczNjQ2MDkzOCwiZXhwIjoxNzM2NTQ3MzM4fQ.w6GzBK419d_1ifoBj-JGEu40Vd8EpS2_JSQTtY4vVYU",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"currentPassword\": \"Test123!\",\n    \"newPassword\": \"NewTest123!\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/auth/change-password",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"change-password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Rejestracja admina",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Pre-request Script (opcjonalnie)",
+							"pm.environment.set(\"adminEmail\", \"admin@example.com\");",
+							"pm.environment.set(\"adminPassword\", \"Admin123!\");",
+							"",
+							"// Testy",
+							"pm.test(\"Status code dla rejestracji admina to 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Odpowiedź zawiera poprawne dane admina\", function () {",
+							"    const response = pm.response.json();",
+							"    ",
+							"    pm.expect(response).to.have.property('success', true);",
+							"    pm.expect(response).to.have.property('token');",
+							"    pm.expect(response.user).to.have.property('email', pm.environment.get(\"adminEmail\"));",
+							"    pm.expect(response.user).to.have.property('role', 'admin');",
+							"});",
+							"",
+							"pm.test(\"Token administratora jest prawidłowy\", function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.token).to.be.a('string').and.to.have.lengthOf.above(10);",
+							"});",
+							"",
+							"// Zapisanie tokenu admina",
+							"if (pm.response.code === 201) {",
+							"    const response = pm.response.json();",
+							"    pm.environment.set(\"adminToken\", response.token);",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"Admin123!\",\n    \"confirmPassword\": \"Admin123!\",\n    \"role\": \"admin\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/auth/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logowanie admina",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code dla logowania admina to 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Odpowiedź logowania admina jest poprawna\", function () {",
+							"    const response = pm.response.json();",
+							"    ",
+							"    pm.expect(response).to.have.property('success', true);",
+							"    pm.expect(response).to.have.property('token');",
+							"    pm.expect(response.user).to.have.property('email', pm.environment.get(\"adminEmail\"));",
+							"    pm.expect(response.user).to.have.property('role', 'admin');",
+							"});",
+							"",
+							"pm.test(\"Weryfikacja uprawnień administratora\", function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.user.role).to.equal('admin');",
+							"});",
+							"",
+							"// Zapisanie tokenu admina",
+							"if (pm.response.code === 200) {",
+							"    const response = pm.response.json();",
+							"    pm.environment.set(\"adminToken\", response.token);",
+							"    ",
+							"    // Test dostępu do panelu admina z nowym tokenem",
+							"    pm.sendRequest({",
+							"        url: pm.environment.get(\"baseUrl\") + \"/api/users/list\",",
+							"        method: 'GET',",
+							"        header: {",
+							"            'Authorization': `Bearer ${response.token}`",
+							"        }",
+							"    }, function (err, response) {",
+							"        pm.test(\"Admin ma dostęp do listy użytkowników\", function () {",
+							"            pm.expect(response.code).to.equal(200);",
+							"        });",
+							"    });",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"Admin123!\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Lista użytkowników (admin)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code jest 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Lista użytkowników ma prawidłową strukturę\", function () {",
+							"    const response = pm.response.json();",
+							"    ",
+							"    pm.expect(response).to.have.property('success', true);",
+							"    pm.expect(response).to.have.property('users').to.be.an('array');",
+							"    pm.expect(response).to.have.property('pagination');",
+							"});",
+							"",
+							"pm.test(\"Paginacja działa poprawnie\", function () {",
+							"    const response = pm.response.json();",
+							"    const requestedLimit = parseInt(pm.request.url.query.get('limit')) || 10;",
+							"    ",
+							"    pm.expect(response.users.length).to.be.at.most(requestedLimit);",
+							"    pm.expect(response.pagination).to.include.all.keys('current', 'total', 'totalRecords');",
+							"});",
+							"",
+							"pm.test(\"Dane użytkowników są prawidłowe\", function () {",
+							"    const response = pm.response.json();",
+							"    ",
+							"    response.users.forEach(user => {",
+							"        pm.expect(user).to.include.all.keys('email', 'role', 'isActive');",
+							"        pm.expect(user).to.not.have.property('password');",
+							"    });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODBiNjg4ZWU5ODViZmZiYmUxMTJhMiIsImlhdCI6MTczNjQ4ODY3MywiZXhwIjoxNzM2NTc1MDczfQ.FBm8vzv3BSjrN4Ej9ZjBCZVj0u-TthOSLfgq5-52Kyg",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/users/list?page=1&limit=10",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"users",
+						"list"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "limit",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Weryfikacja admina",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code dla weryfikacji admina to 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Weryfikacja roli administratora\", function () {",
+							"    const response = pm.response.json();",
+							"    ",
+							"    pm.expect(response).to.have.property('success', true);",
+							"    pm.expect(response.user).to.have.property('role', 'admin');",
+							"});",
+							"",
+							"// Test dostępu do zasobów administracyjnych",
+							"if (pm.response.code === 200) {",
+							"    const adminEndpoints = [",
+							"        '/api/users/list',",
+							"        '/api/admin/stats',",
+							"        '/api/users/deactivate/someUserId'",
+							"    ];",
+							"    ",
+							"    adminEndpoints.forEach(endpoint => {",
+							"        pm.sendRequest({",
+							"            url: pm.environment.get(\"baseUrl\") + endpoint,",
+							"            method: 'GET',",
+							"            header: {",
+							"                'Authorization': 'Bearer ' + pm.environment.get(\"adminToken\")",
+							"            }",
+							"        }, function (err, response) {",
+							"            pm.test(`Admin ma dostęp do ${endpoint}`, function () {",
+							"                pm.expect(response.code).to.not.equal(403);",
+							"            });",
+							"        });",
+							"    });",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODBiNjg4ZWU5ODViZmZiYmUxMTJhMiIsImlhdCI6MTczNjQ4ODY3MywiZXhwIjoxNzM2NTc1MDczfQ.FBm8vzv3BSjrN4Ej9ZjBCZVj0u-TthOSLfgq5-52Kyg",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/auth/verify",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"verify"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
